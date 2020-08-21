@@ -281,7 +281,9 @@ module Onebox
       end
 
       def is_card?
-        data[:card] == 'player' && data[:player] =~ URI::regexp
+        data[:card] == 'player' &&
+          data[:player] =~ URI::regexp &&
+          options[:allowed_iframe_regexes]&.any? { |r| data[:player] =~ r }
       end
 
       def is_article?
@@ -305,14 +307,16 @@ module Onebox
       end
 
       def is_video?
-        data[:type] =~ /^video[\/\.]/ && !Onebox::Helpers.blank?(data[:video])
+        data[:type] =~ /^video[\/\.]/ &&
+          data[:video_type] == "video/mp4" &&
+          !Onebox::Helpers.blank?(data[:video])
       end
 
       def is_embedded?
         data[:html] &&
         data[:height] &&
         (
-          data[:html]["iframe"] ||
+          (data[:html]["iframe"] && options[:allowed_iframe_regexes]&.any? { |r| data[:html]["iframe"]["src"] =~ r }) ||
           AllowlistedGenericOnebox.html_providers.include?(data[:provider_name])
         )
       end

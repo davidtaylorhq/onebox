@@ -7,8 +7,10 @@ module Onebox
 
       matches_regexp /^(https?:)?\/\/((www|calendar)\.google\.[\w.]{2,}|goo\.gl)\/calendar\/.+$/
       always_https
+      requires_iframe_origins "https://calendar.google.com"
 
       def to_html
+        puts "TO HEML"
         url = @url.split('&').first
         src = ::Onebox::Helpers.normalize_url_for_output(url)
         "<iframe src='#{src}&rm=minimal' style='border: 0' width='800' height='600' frameborder='0' scrolling='no'>#{placeholder_html}</iframe>"

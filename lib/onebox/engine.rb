@@ -12,12 +12,16 @@ module Onebox
       end.map(&method(:const_get))
     end
 
+    def self.all_iframe_origins
+      self.engines.flat_map { |e| e.iframe_origins }.uniq.compact
+    end
+
     attr_reader :url, :uri
     attr_reader :timeout
 
     DEFAULT = {}
     def options
-      @options
+      @options.tap { |o| puts o.inspect }
     end
 
     def options=(opt)
@@ -98,6 +102,14 @@ module Onebox
 
       def matches_regexp(r)
         class_variable_set :@@matcher, r
+      end
+
+      def requires_iframe_origins(*origins)
+        class_variable_set :@@iframe_origins, origins
+      end
+
+      def iframe_origins
+        class_variable_defined?(:@@iframe_origins) ? class_variable_get(:@@iframe_origins) : []
       end
 
       # calculates a name for onebox using the class name of engine

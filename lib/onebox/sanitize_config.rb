@@ -39,6 +39,22 @@ class Sanitize
           else
             a_tag.remove_attribute('target')
           end
+        end,
+
+        lambda do |env|
+          next unless env[:node_name] == 'iframe'
+
+          iframe = env[:node]
+          allowed_regexes = env[:config][:allowed_iframe_regexes] || [/.*/]
+
+          allowed = allowed_regexes.any? { |r| iframe["src"] =~ r }
+
+          if !allowed
+            # add a data attribute with the blocked src. This is not required
+            # but makes it much easier to troubleshoot onebox issues
+            iframe["data-onebox-sanitized-src"] = iframe["src"]
+            iframe.remove_attribute("src")
+          end
         end
       ],
 

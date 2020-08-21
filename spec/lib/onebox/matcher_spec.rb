@@ -6,6 +6,10 @@ class TestEngine
   def self.===(uri)
     true
   end
+
+  def self.iframe_origins
+    ["https://example.com", "https://example2.com"]
+  end
 end
 
 describe Onebox::Matcher do
@@ -69,6 +73,32 @@ describe Onebox::Matcher do
           allow(matcher).to receive(:ordered_engines).and_return([TestEngine])
           expect(matcher.oneboxed).to be_nil
         end
+      end
+    end
+
+    describe "with restricted iframe domains" do
+      it "finds an engine when wildcard allowed" do
+        matcher = Onebox::Matcher.new("https://example.com", allowed_iframe_regexes: [/.*/])
+        allow(matcher).to receive(:ordered_engines).and_return([TestEngine])
+        expect(matcher.oneboxed).not_to be_nil
+      end
+
+      it "doesn't find an engine when nothing allowed" do
+        matcher = Onebox::Matcher.new("https://example.com", allowed_iframe_regexes: [])
+        allow(matcher).to receive(:ordered_engines).and_return([TestEngine])
+        expect(matcher.oneboxed).to be_nil
+      end
+
+      it "doesn't find an engine when only some subdomains are allowed" do
+        matcher = Onebox::Matcher.new("https://example.com", allowed_iframe_regexes: [Onebox::Preview.iframe_origin_regex("https://example.com")])
+        allow(matcher).to receive(:ordered_engines).and_return([TestEngine])
+        expect(matcher.oneboxed).to be_nil
+      end
+
+      it "finds an engine when all required domains are allowed" do
+        matcher = Onebox::Matcher.new("https://example.com", allowed_iframe_regexes: [Onebox::Preview.iframe_origin_regex("https://example.com"), Onebox::Preview.iframe_origin_regex("https://example2.com")])
+        allow(matcher).to receive(:ordered_engines).and_return([TestEngine])
+        expect(matcher.oneboxed).not_to be_nil
       end
     end
 
